@@ -1,0 +1,11 @@
+# Python
+.venv/
+__pycache__/
+
+# Mac
+.DS_Store
+
+# Personal info: keep out of GitHub
+base/resume.json
+output/*
+!output/.gitkeep
