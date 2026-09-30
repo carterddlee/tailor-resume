@@ -9,3 +9,7 @@ __pycache__/
 base/resume.json
 output/*
 !output/.gitkeep
+base/*.pdf
+
+# Claude Code
+.claude/worktrees/
