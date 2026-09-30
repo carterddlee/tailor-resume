@@ -1,9 +1,21 @@
-# Resume Tailor (Claude Code)
+# Tailor Resume (Claude Code)
 
 ## Setup
-1. `pip install python-docx`
-2. Fill in `base/resume.json` with your real resume. Include MORE bullets than fit on a page; the agent picks and rewords, it never invents.
-3. Test the renderer: `python build_resume.py base/resume.json` (creates base/base-resume.docx). Adjust styling in build_resume.py until it looks right.
+1. `pip3 install -r requirements.txt`
+2. Put your base resume in `base/`, in any of these formats. Keep exactly one file there.
+   - Documents: `.docx` `.pdf` `.doc` `.rtf` `.odt` `.pages`
+   - Text/markup: `.md` `.txt` `.tex` `.html` `.json` `.yaml` (and similar)
+
+   Include MORE bullets than fit on a page. The agent picks and rewords them; it never invents.
+3. Check it's detected: `python3 tailor.py prepare`
+
+Each tailored resume comes back in the **same file type and formatting** as your base:
+- Text/markup files are edited as a copy, so the markup stays the same.
+- Documents are edited paragraph by paragraph on a copy of your file, so fonts, spacing, bullets and layout carry over.
+- `.pdf` is converted to Word for editing and back to PDF (needs Microsoft Word or LibreOffice). If you have the original `.docx`, use that; it keeps the formatting more exactly.
+- `.doc`/`.rtf` round-trip through Microsoft Word (macOS `textutil` if Word isn't installed). `.odt` uses `textutil`.
+- `.pages` is driven through the Pages app. If Pages shows a dialog it can time out; export to `.docx` instead.
+- `.json` uses the schema in `build_resume.py` and also gets a rendered `.docx`. To preview your base: `python3 build_resume.py base/resume.json`
 
 ## Use
 From this folder, start Claude Code (`claude`) and run:
@@ -12,9 +24,11 @@ From this folder, start Claude Code (`claude`) and run:
 
 Each input gets its own subagent, all running in parallel. Results land in:
 
-    output/<company-role>/resume.json
+    output/<company-role>/<company-role>-resume.<same ext as base>
     output/<company-role>/notes.md        # changes + skill gaps
-    output/<company-role>/<company-role>-resume.docx
+    output/<company-role>/edits.json      # (document formats) the edits that were applied
+
+To rebuild after hand-editing an `edits.json`: `python3 tailor.py build <company-role>`
 
 ## If a link fails
 LinkedIn/Indeed often block fetching. Paste the job description into `jobs/<name>.txt` and pass that path instead.

@@ -6,6 +6,7 @@ __pycache__/
 .DS_Store
 
 # Personal info: keep out of GitHub
-base/resume.json
+base/*
+!base/.gitkeep
 output/*
 !output/.gitkeep

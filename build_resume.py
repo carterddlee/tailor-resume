@@ -1,8 +1,9 @@
-"""Render tailored resume JSON files into .docx.
+"""Render resume JSON files into .docx. Only used when the base resume is .json;
+tailor.py calls build() for each tailored JSON automatically.
 
 Usage:
-  python build_resume.py                    # builds every output/*/resume.json
-  python build_resume.py path/to/resume.json [...]
+  python3 build_resume.py                    # builds every output/*/*-resume.json
+  python3 build_resume.py path/to/resume.json [...]
 """
 import glob
 import json
@@ -132,15 +133,17 @@ def build(data, out_path):
 
 
 def main():
-    paths = sys.argv[1:] or glob.glob("output/*/resume.json")
+    paths = sys.argv[1:] or glob.glob("output/*/*-resume.json")
     if not paths:
-        print("No resume.json files found in output/.")
+        print("No resume JSON files found in output/.")
         return
     for path in paths:
         path = Path(path)
         try:
             data = json.loads(path.read_text())
-            out = path.parent / f"{path.parent.name}-resume.docx"
+            # base/resume.json -> base/resume-preview.docx (so it isn't mistaken for the base)
+            suffix = "-preview.docx" if path.parent.name == "base" else ".docx"
+            out = path.with_name(path.stem + suffix)
             build(data, out)
             print(f"OK   {out}")
         except Exception as e:
