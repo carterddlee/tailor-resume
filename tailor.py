@@ -3,16 +3,18 @@ each tailored resume comes back in the same type and keeps the base's formatting
 
 Usage:
   python3 tailor.py prepare            # detect base/<file>, extract editable content
-  python3 tailor.py build [slug ...]   # write output/<slug>/<slug>-resume.<ext>
+  python3 tailor.py build [slug ...]   # write output/<slug>/carter_lee_<company>_resume.<ext>
 
 Two modes:
   text   (.md .txt .tex .html .json .yaml ...): the agent edits a copy of the file
-         directly and writes output/<slug>/<slug>-resume.<ext>.
+         directly and writes output/<slug>/tailored.<ext>; build renames it.
   blocks (.docx .pdf .doc .rtf .odt .pages): prepare turns the base into
          base/.work/base.docx and lists its paragraphs in base/.work/content.json.
          The agent writes output/<slug>/edits.json, and build applies those edits to
          a copy of base.docx (so fonts, spacing, bullets and layout carry over)
          and converts the result back to the original file type.
+  Either way the agent also writes output/<slug>/job.json {"company", "role"},
+  which build uses to name the file.
 
 edits.json:
   {
@@ -40,6 +42,7 @@ ROOT = Path(__file__).resolve().parent
 BASE_DIR = ROOT / "base"
 WORK = BASE_DIR / ".work"
 OUTPUT = ROOT / "output"
+NAME_PREFIX = "carter_lee"  # tailored files are named carter_lee_<company>_resume.<ext>
 
 TEXT_EXTS = {".md", ".markdown", ".txt", ".tex", ".html", ".htm", ".json", ".yaml",
              ".yml", ".rst", ".org", ".typ", ".adoc", ".xml", ".csv"}
@@ -406,6 +409,17 @@ def prepare():
     print(json.dumps(info))
 
 
+def resume_name(d, ext):
+    """carter_lee_<company>_resume<ext>, with the company taken from the agent's job.json."""
+    job = d / "job.json"
+    company = json.loads(job.read_text()).get("company", "") if job.exists() else ""
+    company = re.sub(r"[^a-z0-9]+", "_", company.lower()).strip("_")
+    if not company:
+        print(f"WARN {d.relative_to(ROOT)}: no company in job.json, using the folder name")
+        company = d.name.replace("-", "_")
+    return f"{NAME_PREFIX}_{company}_resume{ext}"
+
+
 def build(slugs):
     info_path = WORK / "info.json"
     if not info_path.exists():
@@ -415,16 +429,18 @@ def build(slugs):
     dirs = [OUTPUT / s for s in slugs] if slugs else sorted(
         d for d in OUTPUT.iterdir() if d.is_dir())
     for d in dirs:
-        out = d / f"{d.name}-resume{ext}"
         try:
+            out = d / resume_name(d, ext)
             if info["mode"] == "blocks":
                 edits = json.loads((d / "edits.json").read_text())
                 with tempfile.TemporaryDirectory() as tmp:
                     tailored = Path(tmp) / f"{d.name}-resume.docx"
                     apply_edits(WORK / "base.docx", edits, tailored)
                     from_docx(tailored, out)
+            elif (d / f"tailored{ext}").exists():
+                shutil.move(str(d / f"tailored{ext}"), str(out))
             elif not out.exists():
-                raise FileNotFoundError(f"agent did not write {out.name}")
+                raise FileNotFoundError(f"agent did not write tailored{ext}")
             if ext == ".json":  # structured JSON: also render a readable .docx
                 from build_resume import build as render
                 render(json.loads(out.read_text()), out.with_suffix(".docx"))

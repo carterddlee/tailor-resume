@@ -24,7 +24,8 @@ From this folder, start Claude Code (`claude`) and run:
 
 Each input gets its own subagent, all running in parallel. Results land in:
 
-    output/<company-role>/<company-role>-resume.<same ext as base>
+    output/<company-role>/carter_lee_<company>_resume.<same ext as base>   # e.g. carter_lee_anthropic_resume.pdf
+    output/<company-role>/job.json        # company + role (used for the file name)
     output/<company-role>/notes.md        # changes + skill gaps
     output/<company-role>/edits.json      # (document formats) the edits that were applied
 

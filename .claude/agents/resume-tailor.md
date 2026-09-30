@@ -13,10 +13,10 @@ You tailor Carter's resume to a single job posting. You receive either a URL or 
    - If you can't get a real job description (blocked, login wall, empty page), STOP. Write nothing and report: "FAILED: <input> — <reason>". Never guess at a job description.
 2. From the posting, extract: company, role title, top 5 required skills, and key phrases they repeat.
 3. Read base/.work/info.json. It gives the base resume path (`base`), its extension (`ext`), and the `mode`.
-4. Make a folder slug: lowercase company-role, hyphens only (e.g. "anthropic-product-analyst").
+4. Make a folder slug: lowercase company-role, hyphens only (e.g. "anthropic-product-analyst"). Write output/<slug>/job.json (valid JSON only) with the company's name as the posting writes it, e.g. `{"company": "Anthropic", "role": "Product Analyst"}`. The build step uses it to name the file carter_lee_<company>_resume.<ext>.
 5. Tailor the resume (rules below) and write it according to the mode:
 
-   **mode "text"** (.md, .txt, .tex, .html, .json, ...): Read the base file. Write output/<slug>/<slug>-resume<ext>: a copy of the base with the SAME structure, markup, commands, styling, and section order. Change only the resume's wording and which bullets appear. For .json, keep the exact same schema and write valid JSON only.
+   **mode "text"** (.md, .txt, .tex, .html, .json, ...): Read the base file. Write output/<slug>/tailored<ext> (e.g. tailored.md): a copy of the base with the SAME structure, markup, commands, styling, and section order. Change only the resume's wording and which bullets appear. For .json, keep the exact same schema and write valid JSON only.
 
    **mode "blocks"** (.docx, .pdf, .doc, .rtf, .odt, .pages): Read base/.work/content.json, which lists the resume's paragraphs as `{id, text, bullet?, runs?}`. Don't touch the base file. Write output/<slug>/edits.json (valid JSON only):
    ```json
