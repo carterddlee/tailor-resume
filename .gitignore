@@ -7,6 +7,8 @@ __pycache__/
 
 # Personal info: keep out of GitHub
 base/resume.json
+base/facts.md
+question-bank.md
 output/*
 !output/.gitkeep
 base/*.pdf

@@ -10,6 +10,7 @@ does: baseline gap = descent(prev) + space_after(prev) + space_before(next) + as
 """
 import glob
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -197,6 +198,18 @@ def build(data, out_path):
     page.save()
 
 
+def company_slug(folder):
+    """Company name from notes.md ("Company: X" line, else the "# X - Role" heading)."""
+    notes = folder / "notes.md"
+    lines = notes.read_text().splitlines() if notes.exists() else []
+    name = next((l.split(":", 1)[1] for l in lines if l.lower().startswith("company:")), None)
+    if name is None and lines and lines[0].startswith("# "):
+        name = re.split(r"\s+[-—–]\s+|,\s", lines[0][2:])[0]
+    if not name:
+        name = folder.name.split("-")[0]
+    return re.sub(r"[^a-z0-9]+", "-", name.strip().lower()).strip("-")
+
+
 def main():
     paths = sys.argv[1:] or glob.glob("output/*/resume.json")
     if not paths:
@@ -206,8 +219,11 @@ def main():
         path = Path(path)
         try:
             data = json.loads(path.read_text())
-            out = path.parent / f"{path.parent.name}-resume.pdf"
+            out = path.parent / f"carter-lee-{company_slug(path.parent)}.pdf"
             build(data, out)
+            for old in path.parent.glob("*.pdf"):
+                if old != out:
+                    old.unlink()
             print(f"OK   {out}")
         except Exception as e:
             print(f"FAIL {path}: {e}")
